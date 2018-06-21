@@ -49,22 +49,34 @@ type tick struct {
 }
 
 // New initializes and returns new cron table
-func New() *Crontab {
-	return new(time.Minute)
+// by default it waits until the beginning
+// of the next minute (00 seconds, 000 milliseconds) before
+// initializing the ticker
+// to disable this then pass a boolean flag as input parameter
+func New(disableSleepToBeginningOfMinute ...bool) *Crontab {
+	if len(disableSleepToBeginningOfMinute) > 0 && disableSleepToBeginningOfMinute[0] {
+		log.Println("Disable wait")
+		return new(time.Minute)
+	}
+	log.Println("Enable wait")
+	return new(time.Minute, true)
 }
 
 // new creates new crontab, arg provided for testing purpose
-func new(t time.Duration) *Crontab {
-	log.Println("Start sleeping for at most 1 minute...")
-	// wait until the minute 00 seconds!
-	time.Sleep(time.Duration(60-time.Now().Second()) * time.Second)
-	log.Println("Done sleeping...")
+func new(t time.Duration, sleepToBeginningOfMinute ...bool) *Crontab {
+	// wait until the minute 00 seconds 000 milliseconds
+	// to make the trigger starting at 00 seconds 000 milliseconds
+	if len(sleepToBeginningOfMinute) > 0 && sleepToBeginningOfMinute[0] {
+		now := time.Now()
+		time.Sleep(time.Duration(60-now.Second())*time.Second - now.Sub(now.Truncate(time.Second)))
+	}
 	c := &Crontab{
 		ticker:    time.NewTicker(t),
 		statsChan: make(chan ExecStats),
 	}
 
 	go func() {
+		// c.runScheduled(time.Now())
 		for t := range c.ticker.C {
 			c.runScheduled(t)
 		}

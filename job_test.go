@@ -22,7 +22,7 @@ func myFunc2(s string, n int) {
 
 func TestJobError(t *testing.T) {
 
-	ctab := New()
+	ctab := New(true)
 
 	if err := ctab.AddJob("* * * * *", myFunc, 10); err == nil {
 		t.Error("This AddJob should return Error, wrong number of args")
@@ -97,7 +97,7 @@ func TestRunAll(t *testing.T) {
 	testN = 0
 	testS = ""
 
-	ctab := New()
+	ctab := New(true)
 
 	if err := ctab.AddJob("* * * * *", func() { testN++ }); err != nil {
 		t.Fatal(err)
@@ -108,6 +108,7 @@ func TestRunAll(t *testing.T) {
 	}
 
 	ctab.RunAll()
+	// log.Println("Waiting for a minute...")
 	time.Sleep(time.Second)
 
 	if testN != 1 {
@@ -152,9 +153,9 @@ func myFuncWithTickCustomStats(statsChan chan ExecStats) {
 }
 
 func TestTicksAtTheBeginningOfMinute(t *testing.T) {
+	log.Println("Testing the job checks trigger at the beginning of the minute (0 seconds), so waiting AT MOST 1 minute + the 1 minute iteration period for the schedule '* * * * *'...")
 	ctab := New()
 
-	log.Println("Testing the job checks trigger at the beginning of the minute (0 seconds), so waiting AT MOST 1 minute for the sleep and 1 minute for the schedule '* * * * *'...")
 	ctab.MustAddJob("* * * * *", myFuncWithTickCustomStats, ctab.StatsChan())
 
 	for i := 1; i <= 1; i++ {
@@ -163,14 +164,13 @@ func TestTicksAtTheBeginningOfMinute(t *testing.T) {
 			t.Errorf("Found an unexpected Job type")
 		}
 		customStuff := firstStatsStruct.Stats().(*myTickCustomStats)
+		log.Printf("The received timestamp in the execution stats: %v\n", customStuff.tickTime)
 		if customStuff.testN != 1 {
 			t.Error("The func is not executed as scheduled")
 		}
-		// log.Printf("The received timestamp: %v\n", customStuff.tickTime)
 		if customStuff.tickTime.Second() != 0 {
 			t.Errorf("The func did not trigger at the beginning of the minute, found: %v", customStuff.tickTime)
 		}
 		ctab.Shutdown()
-		log.Printf("Done with the test, the received stats: %v\n", customStuff)
 	}
 }
