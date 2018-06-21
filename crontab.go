@@ -55,6 +55,10 @@ func New() *Crontab {
 
 // new creates new crontab, arg provided for testing purpose
 func new(t time.Duration) *Crontab {
+	log.Println("Start sleeping for at most 1 minute...")
+	// wait until the minute 00 seconds!
+	time.Sleep(time.Duration(60-time.Now().Second()) * time.Second)
+	log.Println("Done sleeping...")
 	c := &Crontab{
 		ticker:    time.NewTicker(t),
 		statsChan: make(chan ExecStats),

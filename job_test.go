@@ -2,6 +2,7 @@ package crontab
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"testing"
 	"time"
@@ -129,4 +130,47 @@ func TestRunAll(t *testing.T) {
 	}
 
 	ctab.Shutdown()
+}
+
+type myTickCustomStats struct {
+	tickTime time.Time
+	testN    int
+}
+
+func myFuncWithTickCustomStats(statsChan chan ExecStats) {
+	statsChan <- ExecStats{
+		// ID to identify the job
+		JobType: "myFuncWithTickCustomStats",
+		// custom execution stats
+		Stats: func() interface{} {
+			return &myTickCustomStats{
+				tickTime: time.Now(),
+				testN:    1,
+			}
+		},
+	}
+}
+
+func TestTicksAtTheBeginningOfMinute(t *testing.T) {
+	ctab := New()
+
+	log.Println("Testing the job checks trigger at the beginning of the minute (0 seconds), so waiting AT MOST 1 minute for the sleep and 1 minute for the schedule '* * * * *'...")
+	ctab.MustAddJob("* * * * *", myFuncWithTickCustomStats, ctab.StatsChan())
+
+	for i := 1; i <= 1; i++ {
+		firstStatsStruct := <-ctab.StatsChan()
+		if firstStatsStruct.JobType != "myFuncWithTickCustomStats" {
+			t.Errorf("Found an unexpected Job type")
+		}
+		customStuff := firstStatsStruct.Stats().(*myTickCustomStats)
+		if customStuff.testN != 1 {
+			t.Error("The func is not executed as scheduled")
+		}
+		// log.Printf("The received timestamp: %v\n", customStuff.tickTime)
+		if customStuff.tickTime.Second() != 0 {
+			t.Errorf("The func did not trigger at the beginning of the minute, found: %v", customStuff.tickTime)
+		}
+		ctab.Shutdown()
+		log.Printf("Done with the test, the received stats: %v\n", customStuff)
+	}
 }
