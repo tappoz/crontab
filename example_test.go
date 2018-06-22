@@ -8,7 +8,6 @@ import (
 
 // go test -v ./... -run TestExampleExecStats
 func TestExampleExecStats(t *testing.T) {
-	log.Println("Waiting a bit for the test to complete...")
 	ctab := Fake(2) // fake crontab wiht 2sec timer to speed up test
 
 	ctab.MustAddJob("* * * * *", myFuncWithStats, ctab.StatsChan())
@@ -26,7 +25,7 @@ func TestExampleExecStats(t *testing.T) {
 			t.Errorf("Found an unexpected integer parameter in the stats")
 		}
 		ctab.Shutdown()
-		log.Println("Done with the test, the received stats:", customStuff)
+		log.Printf("Done with the test, the received stats: %+v", customStuff)
 	}
 }
 

@@ -93,41 +93,57 @@ func TestCrontab(t *testing.T) {
 	ctab.Shutdown()
 }
 
+type myRunAllStats struct {
+	counter int
+}
+
+var globalRunAllCounter int
+
+func myRunAllFunc(statsChan chan ExecStats) {
+	globalRunAllCounter++
+	statsChan <- ExecStats{
+		// ID to identify the job
+		JobType: "myRunAllFunc",
+		// custom execution stats
+		Stats: func() interface{} {
+			return &myRunAllStats{
+				counter: 1,
+			}
+		},
+	}
+}
+
 func TestRunAll(t *testing.T) {
 	testN = 0
 	testS = ""
 
 	ctab := New(true)
 
-	if err := ctab.AddJob("* * * * *", func() { testN++ }); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := ctab.AddJob("* * * * *", func(s string) { testS = s }, "param"); err != nil {
+	if err := ctab.AddJob("* * * * *", myRunAllFunc, ctab.StatsChan()); err != nil {
 		t.Fatal(err)
 	}
 
 	ctab.RunAll()
-	// log.Println("Waiting for a minute...")
-	time.Sleep(time.Second)
 
-	if testN != 1 {
-		t.Error("func not executed on RunAll()")
-	}
-
-	if testS != "param" {
-		t.Error("func not executed on RunAll() or arg not passed")
+	for i := 1; i <= 1; i++ {
+		firstStatsStruct := <-ctab.StatsChan()
+		if firstStatsStruct.JobType != "myRunAllFunc" {
+			t.Errorf("Found an unexpected Job type")
+		}
+		customStuff := firstStatsStruct.Stats().(*myRunAllStats)
+		if customStuff.counter != 1 {
+			t.Error("func not executed on RunAll()")
+		}
+		if globalRunAllCounter != 1 {
+			t.Error("func not executed on RunAll()")
+		}
 	}
 
 	ctab.Clear()
 	ctab.RunAll()
 
-	if testN != 1 {
-		t.Error("Jobs not cleared")
-	}
-
-	if testS != "param" {
-		t.Error("Jobs not cleared")
+	if globalRunAllCounter != 1 {
+		t.Error("Jobs not cleared!")
 	}
 
 	ctab.Shutdown()
@@ -153,7 +169,7 @@ func myFuncWithTickCustomStats(statsChan chan ExecStats) {
 }
 
 func TestTicksAtTheBeginningOfMinute(t *testing.T) {
-	log.Println("Testing the job checks trigger at the beginning of the minute (0 seconds), so waiting AT MOST 1 minute + the 1 minute iteration period for the schedule '* * * * *'...")
+	log.Println("Testing the job checks trigger at the beginning of the minute (0 seconds, 000 milliseconds), so waiting AT MOST 1 minute for '* * * * *'...")
 	ctab := New()
 
 	ctab.MustAddJob("* * * * *", myFuncWithTickCustomStats, ctab.StatsChan())

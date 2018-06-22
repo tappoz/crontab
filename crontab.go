@@ -48,25 +48,23 @@ type tick struct {
 	dayOfWeek int
 }
 
-// New initializes and returns new cron table
-// by default it waits until the beginning
+// New initializes and returns new cron table.
+// By default it waits until the beginning
 // of the next minute (00 seconds, 000 milliseconds) before
 // initializing the ticker
 // to disable this then pass a boolean flag as input parameter
 func New(disableSleepToBeginningOfMinute ...bool) *Crontab {
 	if len(disableSleepToBeginningOfMinute) > 0 && disableSleepToBeginningOfMinute[0] {
-		log.Println("Disable wait")
 		return new(time.Minute)
 	}
-	log.Println("Enable wait")
 	return new(time.Minute, true)
 }
 
 // new creates new crontab, arg provided for testing purpose
 func new(t time.Duration, sleepToBeginningOfMinute ...bool) *Crontab {
-	// wait until the minute 00 seconds 000 milliseconds
-	// to make the trigger starting at 00 seconds 000 milliseconds
 	if len(sleepToBeginningOfMinute) > 0 && sleepToBeginningOfMinute[0] {
+		// wait until the minute 00 seconds 000 milliseconds
+		// to make the trigger starting at 00 seconds 000 milliseconds
 		now := time.Now()
 		time.Sleep(time.Duration(60-now.Second())*time.Second - now.Sub(now.Truncate(time.Second)))
 	}
@@ -76,7 +74,8 @@ func new(t time.Duration, sleepToBeginningOfMinute ...bool) *Crontab {
 	}
 
 	go func() {
-		// c.runScheduled(time.Now())
+		// check straight away which jobs to run (according to their crontab)
+		c.runScheduled(time.Now())
 		for t := range c.ticker.C {
 			c.runScheduled(t)
 		}

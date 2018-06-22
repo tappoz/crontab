@@ -1,4 +1,11 @@
-# Go/Golang package for Crontab tickers [![GoDoc](https://godoc.org/github.com/mileusna/crontab?status.svg)](https://godoc.org/github.com/mileusna/crontab)
+# WIP
+
+At the moment I am working at some enhancements:
+
+- providing some uniform execution stats via a channel
+- checking the jobs to run (each minute, i.e. the most granular time frame according to the crontab rules) at the beginning of the minute (0 seconds, 000 milliseconds)
+
+# Go/Golang package for Crontab tickers
 
 This package provides crontab tickers to golang apps, supporting crontab-like syntax like `* * * * *` or `*/2 * * * *` etc.
 
@@ -36,7 +43,7 @@ func main() {
     ctab.MustAddJob("0 12 * * *", myFunc3) // noon lauch
 
     // fn with args
-    ctab.MustAddJob("0 0 * * 1,2", myFunc2, "Monday and Tuesday midnight", 123) 
+    ctab.MustAddJob("0 0 * * 1,2", myFunc2, "Monday and Tuesday midnight", 123)
     ctab.MustAddJob("*/5 * * * *", myFunc2, "every five min", 0)
 
     // all your other app code as usual, or put sleep timer for demo
@@ -99,6 +106,3 @@ Here are the few quick references about crontab simple but powerful syntax.
 ## Notice
 
 There is no way to reschedule or to remove single job from crontab during runtime with crontab package. (Re)create new instance of crontab or use `crontab.Clear()` function and then add jobs again to reschedule during runtime.
-
-
-
