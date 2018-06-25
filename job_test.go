@@ -59,7 +59,7 @@ func TestCrontab(t *testing.T) {
 	testN = 0
 	testS = ""
 
-	ctab := Fake(2) // fake crontab wiht 2sec timer to speed up test
+	ctab := Fake(2) // fake crontab wiht 5sec timer to speed up test
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -80,7 +80,7 @@ func TestCrontab(t *testing.T) {
 
 	select {
 	case <-done:
-	case <-time.After(5 * time.Second):
+	case <-time.After(10 * time.Second):
 	}
 
 	if testN != 1 {

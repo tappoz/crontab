@@ -62,6 +62,7 @@ func New(disableSleepToBeginningOfMinute ...bool) *Crontab {
 
 // new creates new crontab, arg provided for testing purpose
 func new(t time.Duration, sleepToBeginningOfMinute ...bool) *Crontab {
+	// fmt.Printf("The configuration parameters: %v\n", sleepToBeginningOfMinute)
 	if len(sleepToBeginningOfMinute) > 0 && sleepToBeginningOfMinute[0] {
 		// wait until the minute 00 seconds 000 milliseconds
 		// to make the trigger starting at 00 seconds 000 milliseconds
@@ -117,7 +118,9 @@ func (c *Crontab) AddJob(schedule string, fn interface{}, args ...interface{}) e
 		a := args[i]
 		t1 := fnType.In(i)
 		t2 := reflect.TypeOf(a)
-		if t1 != t2 {
+		// t2 might be a struct implementing the t1 interface
+		// (t2 is the passed parameter, t1 is the declared type in the function definition)
+		if t1 != t2 && !t2.AssignableTo(t1) && !t2.ConvertibleTo(t1) {
 			return fmt.Errorf("Param with index %d shold be `%s` not `%s`", i, t1, t2)
 		}
 	}
