@@ -1,7 +1,9 @@
 package crontab
 
 import (
+	"encoding/json"
 	"log"
+	"strings"
 	"testing"
 	"time"
 )
@@ -17,12 +19,12 @@ func TestExampleExecStats(t *testing.T) {
 		if myExecStats.JobType != "myFuncWithStats" {
 			t.Errorf("Found an unexpected Job type")
 		}
-		customStuff := myExecStats.Stats().(*myCustomStats)
-		if customStuff.strParam != "foo" {
-			t.Errorf("Found an unexpected string parameter in the stats")
+		customStuff := myExecStats.Stats.PrettyPrint()
+		if !strings.Contains(customStuff, "\"str_param\":\"foo\"") {
+			t.Errorf("Found an unexpected string parameter in the stats: %s", customStuff)
 		}
-		if customStuff.intParam != 42 {
-			t.Errorf("Found an unexpected integer parameter in the stats")
+		if !strings.Contains(customStuff, "\"int_param\":42") {
+			t.Errorf("Found an unexpected integer parameter in the stats: %s", customStuff)
 		}
 		ctab.Shutdown()
 		log.Printf("Done with the test, the received stats: %+v", customStuff)
@@ -31,8 +33,14 @@ func TestExampleExecStats(t *testing.T) {
 
 // custom execution stats depending on the scheduled function
 type myCustomStats struct {
-	strParam string
-	intParam int
+	StrParam string `json:"str_param"`
+	IntParam int    `json:"int_param"`
+}
+
+func (mcs *myCustomStats) PrettyPrint() string {
+	jsonBytes, _ := json.Marshal(mcs)
+	jsonStr := string(jsonBytes)
+	return jsonStr
 }
 
 func myFuncWithStats(statsChan chan ExecStats) {
@@ -43,11 +51,9 @@ func myFuncWithStats(statsChan chan ExecStats) {
 		// ID to identify the job
 		JobType: "myFuncWithStats",
 		// custom execution stats
-		Stats: func() interface{} {
-			return &myCustomStats{
-				strParam: "foo",
-				intParam: 42,
-			}
+		Stats: &myCustomStats{
+			StrParam: "foo",
+			IntParam: 42,
 		},
 	}
 }

@@ -1,8 +1,10 @@
 package crontab
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -94,7 +96,12 @@ func TestCrontab(t *testing.T) {
 }
 
 type myRunAllStats struct {
-	counter int
+	Counter int `json:"counter"`
+}
+
+func (mras *myRunAllStats) PrettyPrint() string {
+	jsonBytes, _ := json.Marshal(mras)
+	return string(jsonBytes)
 }
 
 var globalRunAllCounter int
@@ -105,10 +112,8 @@ func myRunAllFunc(statsChan chan ExecStats) {
 		// ID to identify the job
 		JobType: "myRunAllFunc",
 		// custom execution stats
-		Stats: func() interface{} {
-			return &myRunAllStats{
-				counter: 1,
-			}
+		Stats: &myRunAllStats{
+			Counter: 1,
 		},
 	}
 }
@@ -130,8 +135,8 @@ func TestRunAll(t *testing.T) {
 		if firstStatsStruct.JobType != "myRunAllFunc" {
 			t.Errorf("Found an unexpected Job type")
 		}
-		customStuff := firstStatsStruct.Stats().(*myRunAllStats)
-		if customStuff.counter != 1 {
+		customStuff := firstStatsStruct.Stats.PrettyPrint()
+		if !strings.Contains(customStuff, "\"counter\":1") {
 			t.Error("func not executed on RunAll()")
 		}
 		if globalRunAllCounter != 1 {
@@ -150,8 +155,14 @@ func TestRunAll(t *testing.T) {
 }
 
 type myTickCustomStats struct {
-	tickTime time.Time
-	testN    int
+	TickTime time.Time `json:"tick_time"`
+	TestN    int       `json:"test_n"`
+}
+
+func (mtcs *myTickCustomStats) PrettyPrint() string {
+	// jsonBytes, _ := json.MarshalIndent(mtcs, "", "  ")
+	jsonBytes, _ := json.Marshal(mtcs)
+	return string(jsonBytes)
 }
 
 func myFuncWithTickCustomStats(statsChan chan ExecStats) {
@@ -159,11 +170,9 @@ func myFuncWithTickCustomStats(statsChan chan ExecStats) {
 		// ID to identify the job
 		JobType: "myFuncWithTickCustomStats",
 		// custom execution stats
-		Stats: func() interface{} {
-			return &myTickCustomStats{
-				tickTime: time.Now(),
-				testN:    1,
-			}
+		Stats: &myTickCustomStats{
+			TickTime: time.Now(),
+			TestN:    1,
 		},
 	}
 }
@@ -179,13 +188,13 @@ func TestTicksAtTheBeginningOfMinute(t *testing.T) {
 		if firstStatsStruct.JobType != "myFuncWithTickCustomStats" {
 			t.Errorf("Found an unexpected Job type")
 		}
-		customStuff := firstStatsStruct.Stats().(*myTickCustomStats)
-		log.Printf("The received timestamp in the execution stats: %v\n", customStuff.tickTime)
-		if customStuff.testN != 1 {
+		customStuff := firstStatsStruct.Stats.PrettyPrint()
+		log.Printf("The received stats: %v\n", customStuff)
+		if !strings.Contains(customStuff, "\"test_n\":1") {
 			t.Error("The func is not executed as scheduled")
 		}
-		if customStuff.tickTime.Second() != 0 {
-			t.Errorf("The func did not trigger at the beginning of the minute, found: %v", customStuff.tickTime)
+		if !strings.Contains(customStuff, ":00") { // TODO this is the seoncds: make it more robust
+			t.Errorf("The func did not trigger at the beginning of the minute, found: %v", customStuff)
 		}
 		ctab.Shutdown()
 	}

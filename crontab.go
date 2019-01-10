@@ -12,12 +12,14 @@ import (
 )
 
 // StatsFunc func representing custom execution statistics
-type StatsFunc func() interface{}
+type StatsData interface {
+	PrettyPrint() string
+}
 
 // ExecStats struct representing a standardized wrapper for execution statistics
 type ExecStats struct {
 	JobType string
-	Stats   StatsFunc
+	Stats   StatsData
 }
 
 // Crontab struct representing cron table
