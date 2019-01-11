@@ -1,17 +1,18 @@
-# WIP
+# Crontab and Schedule
 
-At the moment I am working at some enhancements:
+This is an enhancement of the very useful [`crontab` package from `mileusna`](https://github.com/mileusna/crontab).
 
-- providing some uniform execution stats via a channel
-- checking the jobs to run (each minute, i.e. the most granular time frame according to the crontab rules) at the beginning of the minute (0 seconds, 000 milliseconds)
+- It provides a uniform and very flexible processing for execution stats from different scheduled jobs via a common/shared/global channel.
+- It checks the jobs to run (each minute, i.e. the most granular time frame according to the crontab rules) at the beginning of the minute (0 seconds, 000 milliseconds).
+- It gives a higher level definition of schedule via the `Schedule` interface, compared to the low level `crontab` logic regarding jobs scheduling.
 
-# Go/Golang package for Crontab tickers
+## Go/Golang package for Crontab tickers
 
 This package provides crontab tickers to golang apps, supporting crontab-like syntax like `* * * * *` or `*/2 * * * *` etc.
 
 ## Installation <a id="installation"></a>
 ```
-go get github.com/mileusna/crontab
+go get github.com/tappoz/crontab
 ```
 
 ## Example<a id="example"></a>
@@ -23,7 +24,7 @@ import (
     "fmt"
     "log"
 
-    "github.com/mileusna/crontab"
+    "github.com/tappoz/crontab"
 )
 
 func main() {
