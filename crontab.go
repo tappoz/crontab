@@ -16,10 +16,19 @@ type StatsData interface {
 	PrettyPrint() string
 }
 
-// ExecStats struct representing a standardized wrapper for execution statistics
+// ExecStats struct representing a standardized wrapper for execution statistics.
+// If a job is to be considered of multiple steps - each of them could partially fail, then:
+// * When some of these steps are in error, then the flag `SomeInError` should be true.
+// * When all the steps are in error, then the flag `AllInError` should be true.
+//
+// Both flags should help whatever is supposed to parse an arbitrary structure
+// representing the Job by implementing the `StatsData` interface and made of both
+// execution stats and error.
 type ExecStats struct {
-	JobType string
-	Stats   StatsData
+	JobType     string
+	Stats       StatsData
+	SomeInError bool // should tell if there are some (partial) errors (any) in the execution
+	AllInError  bool // should tell if the whole execution is to be considered in error
 }
 
 // Crontab struct representing cron table
