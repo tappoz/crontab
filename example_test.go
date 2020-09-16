@@ -53,6 +53,14 @@ func (mcs *myCustomStats) StatsMessage() string {
 	return ""
 }
 
+func (mcs *myCustomStats) SomePartialErrors() bool {
+	return false
+}
+
+func (mcs *myCustomStats) TotalError() bool {
+	return false
+}
+
 func myFuncWithStats(statsChan chan ExecStats) {
 	// work a bit...
 	time.Sleep(1 * time.Second)

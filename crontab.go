@@ -20,28 +20,35 @@ type StatsData interface {
 	// It is intended as a valid JSON string representation of the stats.
 	JSONString() string
 	// ErrorMessage is a function to focus only on the errors that might have been recorded in the `StatsData`.
-	// This should be useful in combination with `ExecuteStats.SomeInError` and `ExecuteStats.AllInError`
+	// This should be useful in combination with `ExecuteStats.Stats.SomePartialErrors()` and `ExecuteStats.Stats.TotalError`
 	// when dealing with complex schedules made of steps and half-done work due to partial success of some of these steps.
 	ErrorMessage() string
 	// StatsMessage is a function intended for the scenario where a message with the
 	// aggregated stats is needed, but no JSON string is required, just a message in Natural Language
 	// injected with the aggregated stats from `StatsData` (whatever structure it might have).
 	StatsMessage() string
+
+	// SomePartialErrors should tell if there are some (partial) errors (any) in the execution
+	// e.g. some half-done work where some steps are successful and other steps are not successful.
+	// This depends on the structure of the Go `struct` the developer writes to implement
+	// the interface `StatsData` for the specific job that is being executed.
+	SomePartialErrors() bool
+	// TotalError should tell if the whole execution is to be considered in error
+	// e.g. when there is a complete failure of the job.
+	TotalError() bool
 }
 
 // ExecStats struct representing a standardized wrapper for execution statistics.
 // If a job is to be considered of multiple steps - each of them could partially fail, then:
-// * When some of these steps are in error, then the flag `SomeInError` should be true.
-// * When all the steps are in error, then the flag `AllInError` should be true.
+// * When some of these steps are in error, then the flag `StatsMessage()` should be true.
+// * When all the steps are in error, then the flag `TotalError()` should be true.
 //
 // Both flags should help whatever is supposed to parse an arbitrary structure
 // representing the Job by implementing the `StatsData` interface and made of both
 // execution stats and error.
 type ExecStats struct {
-	JobType     string
-	Stats       StatsData
-	SomeInError bool // should tell if there are some (partial) errors (any) in the execution
-	AllInError  bool // should tell if the whole execution is to be considered in error
+	JobType string
+	Stats   StatsData
 }
 
 // Crontab struct representing cron table

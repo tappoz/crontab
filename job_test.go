@@ -114,6 +114,14 @@ func (mras *myRunAllStats) StatsMessage() string {
 	return ""
 }
 
+func (mras *myRunAllStats) SomePartialErrors() bool {
+	return false
+}
+
+func (mras *myRunAllStats) TotalError() bool {
+	return false
+}
+
 var globalRunAllCounter int
 
 func myRunAllFunc(statsChan chan ExecStats) {
@@ -183,6 +191,14 @@ func (mtcs *myTickCustomStats) ErrorMessage() string {
 func (mtcs *myTickCustomStats) StatsMessage() string {
 	// TODO
 	return ""
+}
+
+func (mtcs *myTickCustomStats) SomePartialErrors() bool {
+	return false
+}
+
+func (mtcs *myTickCustomStats) TotalError() bool {
+	return false
 }
 
 func myFuncWithTickCustomStats(statsChan chan ExecStats) {
