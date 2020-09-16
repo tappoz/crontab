@@ -19,7 +19,7 @@ func TestExampleExecStats(t *testing.T) {
 		if myExecStats.JobType != "myFuncWithStats" {
 			t.Errorf("Found an unexpected Job type")
 		}
-		customStuff := myExecStats.Stats.PrettyPrint()
+		customStuff := myExecStats.Stats.JSONString()
 		if !strings.Contains(customStuff, "\"str_param\":\"foo\"") {
 			t.Errorf("Found an unexpected string parameter in the stats: %s", customStuff)
 		}
@@ -37,10 +37,20 @@ type myCustomStats struct {
 	IntParam int    `json:"int_param"`
 }
 
-func (mcs *myCustomStats) PrettyPrint() string {
+func (mcs *myCustomStats) JSONString() string {
 	jsonBytes, _ := json.Marshal(mcs)
 	jsonStr := string(jsonBytes)
 	return jsonStr
+}
+
+func (mcs *myCustomStats) ErrorMessage() string {
+	// TODO
+	return ""
+}
+
+func (mcs *myCustomStats) StatsMessage() string {
+	// TODO
+	return ""
 }
 
 func myFuncWithStats(statsChan chan ExecStats) {

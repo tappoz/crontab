@@ -99,9 +99,19 @@ type myRunAllStats struct {
 	Counter int `json:"counter"`
 }
 
-func (mras *myRunAllStats) PrettyPrint() string {
+func (mras *myRunAllStats) JSONString() string {
 	jsonBytes, _ := json.Marshal(mras)
 	return string(jsonBytes)
+}
+
+func (mras *myRunAllStats) ErrorMessage() string {
+	// TODO
+	return ""
+}
+
+func (mras *myRunAllStats) StatsMessage() string {
+	// TODO
+	return ""
 }
 
 var globalRunAllCounter int
@@ -135,7 +145,7 @@ func TestRunAll(t *testing.T) {
 		if firstStatsStruct.JobType != "myRunAllFunc" {
 			t.Errorf("Found an unexpected Job type")
 		}
-		customStuff := firstStatsStruct.Stats.PrettyPrint()
+		customStuff := firstStatsStruct.Stats.JSONString()
 		if !strings.Contains(customStuff, "\"counter\":1") {
 			t.Error("func not executed on RunAll()")
 		}
@@ -159,10 +169,20 @@ type myTickCustomStats struct {
 	TestN    int       `json:"test_n"`
 }
 
-func (mtcs *myTickCustomStats) PrettyPrint() string {
+func (mtcs *myTickCustomStats) JSONString() string {
 	// jsonBytes, _ := json.MarshalIndent(mtcs, "", "  ")
 	jsonBytes, _ := json.Marshal(mtcs)
 	return string(jsonBytes)
+}
+
+func (mtcs *myTickCustomStats) ErrorMessage() string {
+	// TODO
+	return ""
+}
+
+func (mtcs *myTickCustomStats) StatsMessage() string {
+	// TODO
+	return ""
 }
 
 func myFuncWithTickCustomStats(statsChan chan ExecStats) {
@@ -188,7 +208,7 @@ func TestTicksAtTheBeginningOfMinute(t *testing.T) {
 		if firstStatsStruct.JobType != "myFuncWithTickCustomStats" {
 			t.Errorf("Found an unexpected Job type")
 		}
-		customStuff := firstStatsStruct.Stats.PrettyPrint()
+		customStuff := firstStatsStruct.Stats.JSONString()
 		log.Printf("The received stats: %v\n", customStuff)
 		if !strings.Contains(customStuff, "\"test_n\":1") {
 			t.Error("The func is not executed as scheduled")

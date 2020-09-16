@@ -11,9 +11,22 @@ import (
 	"time"
 )
 
-// StatsFunc func representing custom execution statistics
+// StatsData is an interface representing a custom execution statistics for
+// an arbitrary job/schedule.
+// It provides some general purpose functions to inspects an arbitrary statistics
+// about a job execution.
 type StatsData interface {
-	PrettyPrint() string
+	// JSONString is a general purpose function to provide an aggregated view/message for the stats.
+	// It is intended as a valid JSON string representation of the stats.
+	JSONString() string
+	// ErrorMessage is a function to focus only on the errors that might have been recorded in the `StatsData`.
+	// This should be useful in combination with `ExecuteStats.SomeInError` and `ExecuteStats.AllInError`
+	// when dealing with complex schedules made of steps and half-done work due to partial success of some of these steps.
+	ErrorMessage() string
+	// StatsMessage is a function intended for the scenario where a message with the
+	// aggregated stats is needed, but no JSON string is required, just a message in Natural Language
+	// injected with the aggregated stats from `StatsData` (whatever structure it might have).
+	StatsMessage() string
 }
 
 // ExecStats struct representing a standardized wrapper for execution statistics.
